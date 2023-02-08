@@ -1,8 +1,6 @@
-import asyncio
-
 from nonebot.log import logger
 from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import MessageSegment, MessageEvent, GroupMessageEvent, PrivateMessageEvent, PRIVATE, Message
+from nonebot.adapters.onebot.v11 import MessageEvent, PrivateMessageEvent, PRIVATE, Message
 import nonebot
 from nonebot.params import ArgStr, CommandArg, EventPlainText
 from nonebot import on_message, on_command
