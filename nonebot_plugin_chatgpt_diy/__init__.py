@@ -57,11 +57,16 @@ def read_data(path: Path) -> (bool, list):
 # 配置地址----------------------------------------------------------
 
 
-api_key = ""
+
 
 global_config = nonebot.get_driver().config
 gpt3_config = Config.parse_obj(global_config.dict())
 chatgpt3_path = gpt3_config.chatgpt3_path
+
+api_key = gpt3_config.api_key
+if not api_key:
+    logger.error("未设置api_key参数，插件无法正常运行")
+    raise ValueError("未设置api_key参数，插件无法正常运行")
 
 
 if chatgpt3_path == Path():
