@@ -57,7 +57,7 @@ def read_data(path: Path) -> (bool, list):
 # 配置地址----------------------------------------------------------
 
 
-api_key = "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"
+api_key = ""
 
 global_config = nonebot.get_driver().config
 gpt3_config = Config.parse_obj(global_config.dict())
