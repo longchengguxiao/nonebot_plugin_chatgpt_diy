@@ -78,12 +78,13 @@ tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
 
 
 gpt3 = on_message(permission=PRIVATE, priority=10)
-set_background = on_command("设置背景", priority=5, block=True)
+set_background = on_command("添加背景", priority=5, block=True)
+choice_background = on_command("选择背景", priority=5, block=True)
 # delete_background = on_command("删除背景", priority=5, block=True)
 chat_gpt3 = on_command("开始聊天", priority=4, block=True, aliases={"开始对话"})
 
 
-# 设置背景---------------------------------------------------------------------------------------------
+# 添加背景---------------------------------------------------------------------------------------------
 
 @set_background.handle()
 async def _(state: T_State, args: Message = CommandArg()):
@@ -111,22 +112,68 @@ async def _(event: MessageEvent, state: T_State, bot_info: str = ArgStr("bot_inf
     if bot_info in ["算了", "取消"]:
         await set_background.finish("已取消当前操作")
     if len(bot_info) > 200:
-        await set_background.reject_arg("bot_info", prompt="输入字数超过200，请重新输入")
+        await set_background.finish("bot_info", prompt="输入字数超过200，请重新输入")
     background = {
         "bot_name": str(state["bot_name"]),
         "master_name": str(state["master_name"]),
-        "bot_info": str(bot_info)
+        "bot_info": str(bot_info),
+        "is_default":False
     }
+    if os.path.exists(os.path.join(chatgpt3_path, f"{event.user_id}_background.json")):
+        with open(os.path.join(chatgpt3_path, f"{event.user_id}_background.json"), "r", encoding="utf-8") as f:
+            backgrounds = list(f.read())
+    else:
+        backgrounds = []
+    bot_names = [x["bot_name"] for x in backgrounds]
+    if str(state["bot_name"]) in bot_names:
+        backgrounds.pop(bot_names.index(str(state["bot_name"])))
+        await asyncio.sleep(0.5)
+    backgrounds.append(background)
     with open(os.path.join(chatgpt3_path, f"{event.user_id}_background.json"), "w", encoding="utf-8") as f:
-        f.write(json.dumps(background, ensure_ascii=False))
+        f.write(json.dumps(backgrounds, ensure_ascii=False))
     await set_background.finish("设置背景成功！")
 
+
+
+# 选择背景--------------------------------------------------------------------------------------------
+
+
+@choice_background.handle()
+async def _(event:MessageEvent, state:T_State):
+    if os.path.exists(os.path.join(chatgpt3_path, f"{event.user_id}_background.json")):
+        with open(os.path.join(chatgpt3_path, f"{event.user_id}_background.json"), "r", encoding="utf-8") as f:
+            backgrounds = list(f.read())
+            state["backgrounds"] = backgrounds
+            res = "您当前保存的背景有:\n"
+            for i in range(len(backgrounds)):
+                res += f"{i}. {backgrounds[i]['bot_name']}\n"
+            await choice_background.send(res)
+            await asyncio.sleep(0.5)
+    else:
+        await choice_background.finish("您暂未设置背景，请先进行设置")
+
+@choice_background.got("num", prompt="请输入您要选择的背景序号")
+async def _(event:MessageEvent, state:T_State, num:str = ArgStr("num")):
+    try:
+        num = int(num)
+    except:
+        await choice_background.reject_arg("num", "输入数字有误，请重新输入")
+    backgrounds = state["backgrounds"]
+    for i in range(len(backgrounds)):
+        if i == num:
+            backgrounds[i]["is_default"] = True
+        else:
+            backgrounds[i]["is_default"] = False
+    with open(os.path.join(chatgpt3_path, f"{event.user_id}_background.json"), "w", encoding="utf-8") as f:
+        f.write(json.dumps(backgrounds, ensure_ascii=False))
+    res = f"成功设置当前默认背景为{backgrounds[num]['bot_name']}: {backgrounds[num]['bot_info']}"
+    await asyncio.sleep(1)
+    await choice_background.finish(res)
 
 # 私聊会话---------------------------------------------------------------------------------------------
 
 @gpt3.handle()
 async def _(event: PrivateMessageEvent, msg: Message = EventPlainText()):
-    print(msg)
     if msg in ["算了", "取消", "结束对话", "对话结束", "聊天结束", "结束聊天"]:
         await gpt3.finish(".")
     user_id = str(event.user_id)
@@ -135,9 +182,16 @@ async def _(event: PrivateMessageEvent, msg: Message = EventPlainText()):
             chatgpt3_path,
             f"{user_id}_background.json")):
         with open(os.path.join(chatgpt3_path, f"{user_id}_background.json"), "r", encoding="utf-8") as f:
-            background_json = json.load(f)
+            backgrounds_json = json.load(f)
+        flag = 0
+        for background in backgrounds_json:
+            if background["is_default"]:
+                flag = 1
+                background_json = background
+        if flag == 0:
+            await gpt3.finish("您暂未选择背景，请先选择")
     else:
-        await gpt3.finish("您暂未使用人格，请先设置")
+        await gpt3.finish("您暂未设置背景，请先设置")
     if os.path.exists(
         os.path.join(
             chatgpt3_path,
@@ -155,6 +209,8 @@ async def _(event: PrivateMessageEvent, msg: Message = EventPlainText()):
             "w",
             encoding="utf-8")
         f.close()
+        conversation = []
+    if msg in ["重置会话", "重置聊天", "聊天重置", "会话重置"]:
         conversation = []
     bot_name = background_json["bot_name"]
     background = background_json["bot_info"]
