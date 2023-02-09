@@ -228,17 +228,20 @@ async def _(event: PrivateMessageEvent, msg: Message = EventPlainText()):
         conversation = []
     if len(conversation):
         prompt = background + "".join(conversation) + msg
+        len_prompt = len(tokenizer.encode(prompt))
+        while len(conversation) > 12 or len_prompt > 2047:
+            conversation.pop(0)
+            prompt = background + "".join(conversation) + msg
+            len_prompt = len(tokenizer.encode(prompt))
     else:
         prompt = background + restart_sequence + msg + start_sequence
     await asyncio.sleep(2)
+
     resp, flag = get_chat_response(
         api_key, prompt, start_sequence, bot_name, master_name)
     resp = resp.replace("&#91;", "[").replace("&#93;", "]")
+    conversation.append(f"{msg}{start_sequence}{resp}{restart_sequence}")
     if flag:
-        len_prompt = len(tokenizer.encode(prompt))
-        conversation.append(f"{msg}{start_sequence}{resp}{restart_sequence}")
-        if len(conversation) > 12 or len_prompt > 4096:
-            conversation.pop(0)
         with open(os.path.join(chatgpt3_path, f"{user_id}_{bot_name}_conversation.txt"), "w", encoding="utf-8") as f:
             f.write(str(conversation).replace("\\", "\\\\"))
         await gpt3.finish(resp)
@@ -307,19 +310,24 @@ async def _(event: MessageEvent, state: T_State, msg: Message = ArgStr("prompt")
     background = state["background"]
     start_sequence = f"\n{bot_name}:"
     restart_sequence = f"\n{master_name}: "
+
     if len(conversation):
         prompt = background + "".join(conversation) + msg
+        len_prompt = len(tokenizer.encode(prompt))
+        while len(conversation) > 12 or len_prompt > 2047:
+            conversation.pop(0)
+            prompt = background + "".join(conversation) + msg
+            len_prompt = len(tokenizer.encode(prompt))
     else:
         prompt = background + restart_sequence + msg + start_sequence
     await asyncio.sleep(2)
+
     resp, flag = get_chat_response(
         api_key, prompt, start_sequence, bot_name, master_name)
     resp = resp.replace("&#91;", "[").replace("&#93;", "]")
+    conversation.append(f"{msg}{start_sequence}{resp}{restart_sequence}")
     if flag:
-        len_prompt = len(tokenizer.encode(prompt))
-        conversation.append(f"{msg}{start_sequence}{resp}{restart_sequence}")
-        if len(conversation) > 12 or len_prompt > 4096:
-            conversation.pop(0)
+
         with open(os.path.join(chatgpt3_path, f"{event.user_id}_{bot_name}_conversation.txt"), "w", encoding="utf-8") as f:
             f.write(str(conversation).replace("\\", "\\\\"))
         await chat_gpt3.reject_arg("prompt", prompt=resp)
