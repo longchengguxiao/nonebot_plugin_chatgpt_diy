@@ -1,6 +1,6 @@
 from nonebot.log import logger
 from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import MessageEvent, PrivateMessageEvent, PRIVATE, Message
+from nonebot.adapters.onebot.v11 import MessageEvent, PrivateMessageEvent, PRIVATE, Message, MessageSegment
 import nonebot
 from nonebot.params import ArgStr, CommandArg, EventPlainText
 from nonebot import on_message, on_command
@@ -240,8 +240,10 @@ async def _(event: PrivateMessageEvent, msg: Message = EventPlainText()):
     resp, flag = get_chat_response(
         api_key, prompt, start_sequence, bot_name, master_name)
     resp = resp.replace("&#91;", "[").replace("&#93;", "]")
-    conversation.append(f"{msg}{start_sequence}{resp}{restart_sequence}")
+    if not resp:
+        resp = "..."
     if flag:
+        conversation.append(f"{msg}{start_sequence}{resp}{restart_sequence}")
         with open(os.path.join(chatgpt3_path, f"{user_id}_{bot_name}_conversation.txt"), "w", encoding="utf-8") as f:
             f.write(str(conversation).replace("\\", "\\\\"))
         await gpt3.finish(resp)
@@ -325,12 +327,16 @@ async def _(event: MessageEvent, state: T_State, msg: Message = ArgStr("prompt")
     resp, flag = get_chat_response(
         api_key, prompt, start_sequence, bot_name, master_name)
     resp = resp.replace("&#91;", "[").replace("&#93;", "]")
-    conversation.append(f"{msg}{start_sequence}{resp}{restart_sequence}")
+    if not resp:
+        resp = "..."
     if flag:
-
+        conversation.append(f"{msg}{start_sequence}{resp}{restart_sequence}")
         with open(os.path.join(chatgpt3_path, f"{event.user_id}_{bot_name}_conversation.txt"), "w", encoding="utf-8") as f:
             f.write(str(conversation).replace("\\", "\\\\"))
-        await chat_gpt3.reject_arg("prompt", prompt=resp)
+        if isinstance(event, PrivateMessageEvent):
+            await chat_gpt3.reject_arg("prompt", prompt=resp)
+        else:
+            await chat_gpt3.reject_arg("prompt", prompt=MessageSegment.reply(event.message_id)+resp)
     else:
         logger.error(resp)
         await chat_gpt3.reject_arg("prompt", prompt="我刚刚没听清你说什么，能再说一次吗")
