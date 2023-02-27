@@ -93,7 +93,7 @@ async def _(state: T_State, args: Message = CommandArg()):
         state["bot_name"] = msg
 
 
-@set_background.got("bot_name", prompt="请输入您要设置背景的机器人的名称，如 上官雨筝")
+@set_background.got("bot_name", prompt="请输入您要添加背景的机器人的名称，如 上官雨筝")
 async def _(state: T_State, bot_name: str = ArgStr("bot_name")):
     await asyncio.sleep(1)
     await set_background.send(f"当前设置机器人名称为{bot_name}")
@@ -134,7 +134,7 @@ async def _(event: MessageEvent, state: T_State, bot_info: str = ArgStr("bot_inf
     backgrounds.append(background)
     with open(os.path.join(chatgpt3_path, f"{event.user_id}_background.json"), "w", encoding="utf-8") as f:
         f.write(json.dumps(backgrounds, ensure_ascii=False))
-    await set_background.finish("设置背景成功！")
+    await set_background.finish("添加背景成功！")
 
 
 # 选择背景--------------------------------------------------------------------------------------------
@@ -155,7 +155,7 @@ async def _(event: MessageEvent, state: T_State):
             await choice_background.send(res)
             await asyncio.sleep(0.5)
     else:
-        await choice_background.finish("您暂未设置背景，请先进行设置")
+        await choice_background.finish("您暂未添加背景，请先进行添加")
 
 
 @choice_background.got("num", prompt="请输入您要选择的背景序号")
@@ -172,7 +172,7 @@ async def _(event: MessageEvent, state: T_State, num: str = ArgStr("num")):
             backgrounds[i]["is_default"] = False
     with open(os.path.join(chatgpt3_path, f"{event.user_id}_background.json"), "w", encoding="utf-8") as f:
         f.write(json.dumps(backgrounds, ensure_ascii=False))
-    res = f"成功设置当前默认背景为:\n{backgrounds[num]['bot_name']}\n\n背景如下:\n{backgrounds[num]['bot_info']}"
+    res = f"成功选择当前默认背景为:\n{backgrounds[num]['bot_name']}\n\n背景如下:\n{backgrounds[num]['bot_info']}"
     await asyncio.sleep(1)
     await choice_background.finish(res)
 
@@ -198,7 +198,7 @@ async def _(event: PrivateMessageEvent, msg: Message = EventPlainText()):
         if flag == 0:
             await gpt3.finish("您暂未选择背景，请先选择")
     else:
-        await gpt3.finish("您暂未设置背景，请先设置")
+        await gpt3.finish("您暂未添加背景，请先添加背景")
     if msg in ["重置会话", "重置聊天", "聊天重置", "会话重置"]:
         conversation = []
         await gpt3.finish(".")
@@ -268,9 +268,9 @@ async def _(event: MessageEvent, state: T_State):
                 flag = 1
                 background_json = background
         if flag == 0:
-            await gpt3.finish("您暂未选择背景，请先选择")
+            await gpt3.finish("您暂未选择背景，请先选择背景")
     else:
-        await gpt3.finish("您暂未使用人格，请先设置")
+        await gpt3.finish("您暂未使用背景，请先添加背景")
 
     state["bot_name"] = background_json["bot_name"]
     state["background"] = background_json["bot_info"]
