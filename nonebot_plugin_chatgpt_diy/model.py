@@ -4,7 +4,7 @@ import openai
 def get_chat_response(key, msg, start_sequence, bot_name, master_name) -> (str, bool):
     openai.api_key = key
     try:
-        response : str = openai.Completion.create(
+        response = openai.Completion.create(
             model="text-davinci-003",
             prompt=msg,
             temperature=0.6,
