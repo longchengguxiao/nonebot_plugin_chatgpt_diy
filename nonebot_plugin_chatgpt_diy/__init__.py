@@ -198,7 +198,7 @@ async def _(event: PrivateMessageEvent, msg: Message = EventPlainText()):
         if flag == 0:
             await gpt3.finish("您暂未选择背景，请先选择")
     else:
-        await gpt3.finish("您暂未添加背景，请先添加背景")
+        await gpt3.finish("您暂未添加背景，请先添加背景。")
     if msg in ["重置会话", "重置聊天", "聊天重置", "会话重置"]:
         conversation = []
         await gpt3.finish(".")
