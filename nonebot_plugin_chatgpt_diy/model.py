@@ -5,7 +5,7 @@ def get_chat_response(key, msg, start_sequence, bot_name, master_name) -> (str, 
     openai.api_key = key
     try:
         response = openai.Completion.create(
-            model="gpt-3.5-turbo",
+            model="text-davinci-003",
             prompt=msg,
             temperature=0.6,
             max_tokens=2048,
