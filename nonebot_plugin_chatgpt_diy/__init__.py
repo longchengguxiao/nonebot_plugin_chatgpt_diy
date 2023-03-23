@@ -227,6 +227,7 @@ async def _(bot:Bot, event: PrivateMessageEvent, msg: Message = EventPlainText()
         你只需要给出命令，不需要说多余的话，切记，不用说其他的话，只需要给出格式命令文字本身
         """ + f"\n\n需要被转化的命令为:{msg}"
     res = await get_response(prompt, api_key)
+    print(res)
     msg_event = MessageEvent(time=int(time.time()), self_id=event.self_id, post_type="message", sub_type="friend",
                              user_id=event.user_id, message_type="private", message_id=event.message_id,
                              message=[{"type": "text", "data": {"text": res}}],
@@ -237,76 +238,76 @@ async def _(bot:Bot, event: PrivateMessageEvent, msg: Message = EventPlainText()
                                      "area": event.sender.area, "level": event.sender.level, "role": event.sender.role,
                                      "title": event.sender.title}, to_me=event.to_me, reply=event.reply,
                              target_id=event.self_id)
-    if res != "我找不到相应的命令":
-        asyncio.create_task(handle_event(bot, msg_event))
-    else:
-        user_id = str(event.user_id)
-        if os.path.exists(
-            os.path.join(
-                chatgpt3_path,
-                f"{user_id}_background.json")):
-            with open(os.path.join(chatgpt3_path, f"{user_id}_background.json"), "r", encoding="utf-8") as f:
-                backgrounds_json = json.load(f)
-            flag = 0
-            for background in backgrounds_json:
-                if background["is_default"]:
-                    flag = 1
-                    background_json = background
-            if flag == 0:
-                await gpt3.finish("您暂未选择背景，请先选择")
-        else:
-            await gpt3.finish("您暂未添加背景，请先添加背景。")
-        if msg in ["重置会话", "重置聊天", "聊天重置", "会话重置"]:
-            conversation = []
-            await gpt3.finish(".")
-        bot_name = background_json["bot_name"]
-        background = background_json["bot_info"]
-        master_name = background_json["master_name"]
-        start_sequence = f"\n{bot_name}:"
-        restart_sequence = f"\n{master_name}: "
-        if os.path.exists(
-            os.path.join(
-                chatgpt3_path,
-                f"{user_id}_{bot_name}_conversation.txt")):
-            with open(os.path.join(chatgpt3_path, f"{user_id}_{bot_name}_conversation.txt"), "r", encoding="utf-8") as f:
-                try:
-                    conversation = eval(f.read().replace("\\\\", "\\"))
-                except Exception as e:
-                    logger.error(e)
-                    conversation = []
-        else:
-            f = open(
-                os.path.join(
-                    chatgpt3_path,
-                    f"{user_id}_{bot_name}_conversation.txt"),
-                "w",
-                encoding="utf-8")
-            f.close()
-            conversation = []
-        if len(conversation):
-            prompt = background + "".join(conversation) + msg
-            len_prompt = len(tokenizer.encode(prompt))
-            while len(conversation) > 12 or len_prompt > 2047:
-                conversation.pop(0)
-                prompt = background + "".join(conversation) + msg
-                len_prompt = len(tokenizer.encode(prompt))
-        else:
-            prompt = background + restart_sequence + msg + start_sequence
-        await asyncio.sleep(2)
-
-        resp, flag = get_chat_response(
-            api_key, prompt, start_sequence, bot_name, master_name)
-        resp = resp.replace("&#91;", "[").replace("&#93;", "]")
-        if not resp:
-            resp = "..."
-        if flag:
-            conversation.append(f"{msg}{start_sequence}{resp}{restart_sequence}")
-            with open(os.path.join(chatgpt3_path, f"{user_id}_{bot_name}_conversation.txt"), "w", encoding="utf-8") as f:
-                f.write(str(conversation).replace("\\", "\\\\"))
-            await gpt3.finish(resp)
-        else:
-            logger.error(resp)
-            await gpt3.finish("我没听清你说什么，能再说一次吗")
+    # if res != "我找不到相应的命令":
+    #     asyncio.create_task(handle_event(bot, msg_event))
+    # else:
+    #     user_id = str(event.user_id)
+    #     if os.path.exists(
+    #         os.path.join(
+    #             chatgpt3_path,
+    #             f"{user_id}_background.json")):
+    #         with open(os.path.join(chatgpt3_path, f"{user_id}_background.json"), "r", encoding="utf-8") as f:
+    #             backgrounds_json = json.load(f)
+    #         flag = 0
+    #         for background in backgrounds_json:
+    #             if background["is_default"]:
+    #                 flag = 1
+    #                 background_json = background
+    #         if flag == 0:
+    #             await gpt3.finish("您暂未选择背景，请先选择")
+    #     else:
+    #         await gpt3.finish("您暂未添加背景，请先添加背景。")
+    #     if msg in ["重置会话", "重置聊天", "聊天重置", "会话重置"]:
+    #         conversation = []
+    #         await gpt3.finish(".")
+    #     bot_name = background_json["bot_name"]
+    #     background = background_json["bot_info"]
+    #     master_name = background_json["master_name"]
+    #     start_sequence = f"\n{bot_name}:"
+    #     restart_sequence = f"\n{master_name}: "
+    #     if os.path.exists(
+    #         os.path.join(
+    #             chatgpt3_path,
+    #             f"{user_id}_{bot_name}_conversation.txt")):
+    #         with open(os.path.join(chatgpt3_path, f"{user_id}_{bot_name}_conversation.txt"), "r", encoding="utf-8") as f:
+    #             try:
+    #                 conversation = eval(f.read().replace("\\\\", "\\"))
+    #             except Exception as e:
+    #                 logger.error(e)
+    #                 conversation = []
+    #     else:
+    #         f = open(
+    #             os.path.join(
+    #                 chatgpt3_path,
+    #                 f"{user_id}_{bot_name}_conversation.txt"),
+    #             "w",
+    #             encoding="utf-8")
+    #         f.close()
+    #         conversation = []
+    #     if len(conversation):
+    #         prompt = background + "".join(conversation) + msg
+    #         len_prompt = len(tokenizer.encode(prompt))
+    #         while len(conversation) > 12 or len_prompt > 2047:
+    #             conversation.pop(0)
+    #             prompt = background + "".join(conversation) + msg
+    #             len_prompt = len(tokenizer.encode(prompt))
+    #     else:
+    #         prompt = background + restart_sequence + msg + start_sequence
+    #     await asyncio.sleep(2)
+    #
+    #     resp, flag = get_chat_response(
+    #         api_key, prompt, start_sequence, bot_name, master_name)
+    #     resp = resp.replace("&#91;", "[").replace("&#93;", "]")
+    #     if not resp:
+    #         resp = "..."
+    #     if flag:
+    #         conversation.append(f"{msg}{start_sequence}{resp}{restart_sequence}")
+    #         with open(os.path.join(chatgpt3_path, f"{user_id}_{bot_name}_conversation.txt"), "w", encoding="utf-8") as f:
+    #             f.write(str(conversation).replace("\\", "\\\\"))
+    #         await gpt3.finish(resp)
+    #     else:
+    #         logger.error(resp)
+    #         await gpt3.finish("我没听清你说什么，能再说一次吗")
 
 
 @chat_gpt3.handle()
