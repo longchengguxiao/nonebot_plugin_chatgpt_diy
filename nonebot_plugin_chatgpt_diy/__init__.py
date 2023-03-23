@@ -221,8 +221,8 @@ async def _(bot:Bot, event: PrivateMessageEvent, msg: Message = EventPlainText()
              "\n示例1：提醒 青年大学习 下周一" \
              "\n示例2：提醒 通信原理考试 下周二" \
              "\n示例3：提醒 见老师 今天" \
-             "\n\n你只需要给出命令，不需要说多余的话，切记，不用说其他的话，只需要给出格式命令文字本身" \
-             "\n你只需要给出命令，不需要说多余的话，切记，不用说其他的话，只需要给出格式命令文字本身"
+             "\n\n你只需要给出转化后的命令，不需要说多余的话，切记，不用说其他的话，只需要给出转化后的格式命令文字本身！！！" \
+             "\n你只需要给出转化后的命令，不需要说多余的话，切记，不用说其他的话，只需要给出转化后的格式命令文字本身！！！"
     cmd = f"需要被转化的命令为:{msg}"
     content = [{"role": "user", "content": prompt}, {"role":"assistant","content":"我明白了，请告诉我您需要执行哪个命令。"},{"role": "user", "content": cmd}]
     res = await get_response(content, api_key)
