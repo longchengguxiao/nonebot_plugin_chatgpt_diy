@@ -225,8 +225,10 @@ async def _(bot:Bot, event: PrivateMessageEvent, msg: Message = EventPlainText()
 
         你只需要给出命令，不需要说多余的话，切记，不用说其他的话，只需要给出格式命令文字本身
         你只需要给出命令，不需要说多余的话，切记，不用说其他的话，只需要给出格式命令文字本身
-        """ + f"\n\n需要被转化的命令为:{msg}"
-    res = await get_response(prompt, api_key)
+        """
+    cmd = f"需要被转化的命令为:{msg}"
+    content = [{"role": "user", "content": prompt}, {"role":"assistant","content":"我明白了，请告诉我您需要执行哪个命令。"},{"role": "user", "content": cmd}]
+    res = await get_response(content, api_key)
     print(res)
     msg_event = MessageEvent(time=int(time.time()), self_id=event.self_id, post_type="message", sub_type="friend",
                              user_id=event.user_id, message_type="private", message_id=event.message_id,

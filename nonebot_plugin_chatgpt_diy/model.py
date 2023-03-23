@@ -22,12 +22,10 @@ def get_chat_response(key, msg, start_sequence, bot_name, master_name) -> (str, 
         return f"发生错误: {e}", False
 
 
-async def get_response(prompt, key):
+async def get_response(content, key):
     openai.api_key = key
     openai.proxy="http://127.0.0.1:7890"
-    content=[]
     try:
-        content.append({"role": "user", "content": prompt})
         res_ = await openai.ChatCompletion.acreate(
             model="gpt-3.5-turbo",
             messages=content
