@@ -226,7 +226,8 @@ async def _(bot:Bot, event: PrivateMessageEvent, msg: Message = EventPlainText()
     cmd = f"需要被转化的命令为:{msg}"
     content = [{"role": "user", "content": prompt}, {"role":"assistant","content":"我明白了，请告诉我您需要被转化的语句。"},{"role": "user", "content": cmd}]
     res = await get_response(content, api_key)
-    res = res.replace("转化后的命令为：").replace("。").replace("，").replace(" ")
+    print(res)
+    res = res.replace("转化后的命令为：","").replace("。","").replace("，","").replace(" ","").replace("!","")
     msg_event = MessageEvent(time=int(time.time()), self_id=event.self_id, post_type="message", sub_type="friend",
                              user_id=event.user_id, message_type="private", message_id=event.message_id,
                              message=[{"type": "text", "data": {"text": res}}],
