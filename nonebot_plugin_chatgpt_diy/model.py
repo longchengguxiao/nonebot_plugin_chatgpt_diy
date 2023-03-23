@@ -20,3 +20,23 @@ def get_chat_response(key, msg, start_sequence, bot_name, master_name) -> (str, 
         return res, True
     except Exception as e:
         return f"发生错误: {e}", False
+
+
+async def get_response(prompt, key):
+    openai.api_key = key
+    content=[]
+    try:
+        content.append({"role": "user", "content": prompt})
+        res_ = await openai.ChatCompletion.acreate(
+            model="gpt-3.5-turbo",
+            messages=content
+        )
+
+    except Exception as error:
+        print(error)
+        return
+
+    res = res_.choices[0].message.content
+    while res.startswith("\n") != res.startswith("？"):
+        res = res[1:]
+    return res
