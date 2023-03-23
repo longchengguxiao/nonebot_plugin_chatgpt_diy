@@ -24,7 +24,7 @@ def get_chat_response(key, msg, start_sequence, bot_name, master_name) -> (str, 
 
 async def get_response(prompt, key):
     openai.api_key = key
-    openai.proxy="127.0.0.1:7890"
+    openai.proxy="http://127.0.0.1:7890"
     content=[]
     try:
         content.append({"role": "user", "content": prompt})
