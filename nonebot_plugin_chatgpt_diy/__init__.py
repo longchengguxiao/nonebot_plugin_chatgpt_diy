@@ -4,13 +4,11 @@ from nonebot.adapters.onebot.v11 import MessageEvent, PrivateMessageEvent, PRIVA
 import nonebot
 from nonebot.params import ArgStr, CommandArg, EventPlainText
 from nonebot import on_message, on_command
-from nonebot.message import handle_event
 from pathlib import Path
 from transformers import GPT2TokenizerFast
 import os
 import json
 import asyncio
-import time
 
 from .model import get_chat_response, get_response
 from .config import Config
